@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+from optparse import OptionParser
+from glob import glob
+from os.path import join
+import re
+from bs4 import BeautifulSoup
+
+if __name__ == "__main__":
+  parser = OptionParser()
+  parser.add_option("-r", "--release-branch", dest="branch",
+                    default="CMSSW_7_0_X", metavar="REGEX", 
+                    help="Release series to generate the plot for")
+  parser.add_option("-i", "--input", dest="inputDir",
+                    default="/data/sdt/SDT/jenkins-artifacts/ib-static-analysis",
+                    help="Input directory for data.")
+  parser.add_option("-a", "--architecture", dest="architecture",
+                    default="slc5_amd64_gcc481", metavar="REGEX", 
+                    help="The architecture")
+  opts, args = parser.parse_args()
+  
+  path = join(opts.inputDir, "*", opts.architecture, "llvm-analysis/index.html")
+  releases = glob(path)
+  releases = [x for x in releases if re.match(".*" + opts.branch + ".*", x)]
+  for release in releases:
+    releaseName = "CMSSW_" + release.split("CMSSW_")[1].split("/", 1)[0]
+    soup = BeautifulSoup(open(release).read()[:10000])
+    desc = [x.text for x in soup.select("td.SUMM_DESC")]
+    num = [x.text for x in soup.select("td.Q")]
+    rows = [(releaseName, d, n)  for (d, n) in zip(desc, num)]
+    for r in rows:
+      print ",".join(r)
