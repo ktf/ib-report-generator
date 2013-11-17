@@ -21,6 +21,7 @@ if __name__ == "__main__":
   path = join(opts.inputDir, "*", opts.architecture, "llvm-analysis/index.html")
   releases = glob(path)
   releases = [x for x in releases if re.match(".*" + opts.branch + ".*", x)]
+  print "release,bug,count"
   for release in releases:
     releaseName = "CMSSW_" + release.split("CMSSW_")[1].split("/", 1)[0]
     soup = BeautifulSoup(open(release).read()[:10000])
